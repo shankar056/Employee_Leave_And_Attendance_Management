@@ -8,13 +8,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.example.demo.exception.ClockInandClockOutException;
+import com.example.demo.exception.ClockInException;
+import com.example.demo.exception.ClockOutException;
 import com.example.demo.model.Attendance;
 import com.example.demo.repository.AttendanceRepository;
 
@@ -23,16 +23,13 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class AttendanceServiceImp implements AttendanceService {
-
 	private AttendanceRepository repo;
 
-	public Attendance clockIn(int employeeId) throws ClockInandClockOutException {
+	public Attendance clockIn(int employeeId) {
 		LocalDate today = LocalDate.now();
-		Optional<Attendance> existingAttendance = repo.findByEmployeeIdAndDate(employeeId, today);
-
-		if (existingAttendance.isPresent()) {
-			throw new ClockInandClockOutException("Already clocked in");
-		}
+		repo.findByEmployeeIdAndDate(employeeId, today).ifPresent(a -> {
+			throw new ClockInException("Employee has already clocked in for today.");
+		});
 
 		Attendance attendance = new Attendance();
 		attendance.setEmployeeId(employeeId);
@@ -44,8 +41,9 @@ public class AttendanceServiceImp implements AttendanceService {
 
 	public Attendance clockOut(int employeeId) {
 		LocalDate today = LocalDate.now();
-		Attendance attendance = repo.findByEmployeeIdAndDate(employeeId, today)
-				.orElseThrow(() -> new RuntimeException("No clock-in record found for today"));
+		Attendance attendance = repo.findByEmployeeIdAndDate(employeeId, today).orElseThrow(() -> {
+			return new ClockOutException("No clock-in record found for today.");
+		});
 
 		attendance.setClockOut(LocalDateTime.now());
 		attendance.setWorkHours(calculateWorkHours(attendance.getClockIn(), attendance.getClockOut()));

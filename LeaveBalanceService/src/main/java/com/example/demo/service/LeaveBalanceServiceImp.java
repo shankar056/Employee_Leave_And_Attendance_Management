@@ -4,8 +4,6 @@ import java.util.List;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.stereotype.Service;
 
 import com.example.demo.exception.LeaveTypeNotFound;
@@ -16,7 +14,6 @@ import com.example.demo.repository.LeaveBalanceRepository;
 import com.example.demo.util.LeaveTypes;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 @Service
 

@@ -12,11 +12,14 @@ import com.example.demo.dto.LeaveBalanceDTO;
 import com.example.demo.model.LeaveRequest;
 import com.example.demo.repository.LeaveRequestRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class LeaveRequestServiceImp {
-	@Autowired
+
 	LeaveRequestRepository requestRepo;
-	@Autowired
+
 	BalanceLeave balanceleave;
 
 	public String applyLeave(LeaveRequest request) {

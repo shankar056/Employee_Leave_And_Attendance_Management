@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.demo.exception.ClockInandClockOutException;
 import com.example.demo.model.Attendance;
 import com.example.demo.service.AttendanceServiceImp;
 
@@ -29,7 +27,7 @@ public class AttendanceController {
 
 	@PostMapping("/clockin")
 
-	public Attendance clockIn(@RequestParam int employeeId) throws ClockInandClockOutException {
+	public Attendance clockIn(@RequestParam int employeeId)  {
 
 		return service.clockIn(employeeId);
 
