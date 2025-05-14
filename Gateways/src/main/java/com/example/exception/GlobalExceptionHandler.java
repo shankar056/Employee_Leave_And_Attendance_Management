@@ -12,58 +12,70 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(TokenValidationException.class)
-    public ResponseEntity<Map<String, Object>> handleTokenValidationException(TokenValidationException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.UNAUTHORIZED.value());
-        response.put("error", "Unauthorized");
-        response.put("message", "The provided token is invalid. Please check your token and try again.");
-        response.put("path", "/auth");
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-    }
+	private static final String TIMESTAMP = "timestamp";
+	private static final String STATUS = "status";
+	private static final String ERROR = "error";
+	private static final String MESSAGE = "message";
+	private static final String PATH = "path";
+	private static final String UNAUTHORIZED = "Unauthorized";
+	private static final String FORBIDDEN = "Forbidden";
+	private static final String BAD_REQUEST = "Bad Request";
+	private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+	private static final String AUTH_PATH = "/auth";
 
-    @ExceptionHandler(UnauthorizedAccessException.class)
-    public ResponseEntity<Map<String, Object>> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.FORBIDDEN.value());
-        response.put("error", "Forbidden");
-        response.put("message", "You do not have permission to access this resource.");
-        response.put("path", "/auth");
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
-    }
+	@ExceptionHandler(TokenValidationException.class)
+	public ResponseEntity<Map<String, Object>> handleTokenValidationException(TokenValidationException ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put(TIMESTAMP, LocalDateTime.now());
+		response.put(STATUS, HttpStatus.UNAUTHORIZED.value());
+		response.put(ERROR, UNAUTHORIZED);
+		response.put(MESSAGE, "The provided token is invalid. Please check your token and try again.");
+		response.put(PATH, AUTH_PATH);
+		return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+	}
 
-    @ExceptionHandler(MissingAuthorizationHeaderException.class)
-    public ResponseEntity<Map<String, Object>> handleMissingAuthorizationHeaderException(MissingAuthorizationHeaderException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Bad Request");
-        response.put("message", "Authorization header is missing. Please provide a valid authorization header.");
-        response.put("path", "/auth");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
+	@ExceptionHandler(UnauthorizedAccessException.class)
+	public ResponseEntity<Map<String, Object>> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put(TIMESTAMP, LocalDateTime.now());
+		response.put(STATUS, HttpStatus.FORBIDDEN.value());
+		response.put(ERROR, FORBIDDEN);
+		response.put(MESSAGE, "You do not have permission to access this resource.");
+		response.put(PATH, AUTH_PATH);
+		return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+	}
 
-    @ExceptionHandler(AuthException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthException(AuthException ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Bad Request");
-        response.put("message", "An authentication error occurred. Please check your credentials and try again.");
-        response.put("path", "/auth");
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
+	@ExceptionHandler(MissingAuthorizationHeaderException.class)
+	public ResponseEntity<Map<String, Object>> handleMissingAuthorizationHeaderException(
+			MissingAuthorizationHeaderException ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put(TIMESTAMP, LocalDateTime.now());
+		response.put(STATUS, HttpStatus.BAD_REQUEST.value());
+		response.put(ERROR, BAD_REQUEST);
+		response.put(MESSAGE, "Authorization header is missing. Please provide a valid authorization header.");
+		response.put(PATH, AUTH_PATH);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        response.put("error", "Internal Server Error");
-        response.put("message", "An unexpected error occurred. Please try again later.");
-        response.put("path", "/auth");
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+	@ExceptionHandler(AuthException.class)
+	public ResponseEntity<Map<String, Object>> handleAuthException(AuthException ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put(TIMESTAMP, LocalDateTime.now());
+		response.put(STATUS, HttpStatus.BAD_REQUEST.value());
+		response.put(ERROR, BAD_REQUEST);
+		response.put(MESSAGE, "An authentication error occurred. Please check your credentials and try again.");
+		response.put(PATH, AUTH_PATH);
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put(TIMESTAMP, LocalDateTime.now());
+		response.put(STATUS, HttpStatus.INTERNAL_SERVER_ERROR.value());
+		response.put(ERROR, INTERNAL_SERVER_ERROR);
+		response.put(MESSAGE, "An unexpected error occurred. Please try again later.");
+		response.put(PATH, AUTH_PATH);
+		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 }

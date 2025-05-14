@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.exception.ClockInException;
@@ -24,10 +26,12 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class AttendanceServiceImp implements AttendanceService {
 	private AttendanceRepository repo;
+	private static final Logger logger = LoggerFactory.getLogger(AttendanceServiceImp.class);
 
 	public Attendance clockIn(int employeeId) {
 		LocalDate today = LocalDate.now();
 		repo.findByEmployeeIdAndDate(employeeId, today).ifPresent(a -> {
+			logger.error("Clock-in attempt failed: Employee {} has already clocked in for today.", employeeId);
 			throw new ClockInException("Employee has already clocked in for today.");
 		});
 
@@ -36,23 +40,36 @@ public class AttendanceServiceImp implements AttendanceService {
 		attendance.setDate(today);
 		attendance.setClockIn(LocalDateTime.now());
 
-		return repo.save(attendance);
+		Attendance savedAttendance = repo.save(attendance);
+		logger.info("Employee {} clocked in at {}", employeeId, savedAttendance.getClockIn());
+		return savedAttendance;
+
 	}
 
 	public Attendance clockOut(int employeeId) {
 		LocalDate today = LocalDate.now();
 		Attendance attendance = repo.findByEmployeeIdAndDate(employeeId, today).orElseThrow(() -> {
+			logger.error("Clock-out attempt failed: No clock-in record found for employee {} today.", employeeId);
 			return new ClockOutException("No clock-in record found for today.");
 		});
 
 		attendance.setClockOut(LocalDateTime.now());
 		attendance.setWorkHours(calculateWorkHours(attendance.getClockIn(), attendance.getClockOut()));
 
-		return repo.save(attendance);
+		Attendance savedAttendance = repo.save(attendance);
+		logger.info("Employee {} clocked out at {} with {} hours worked.", employeeId, savedAttendance.getClockOut(),
+				savedAttendance.getWorkHours());
+		return savedAttendance;
+
 	}
 
 	public List<Attendance> getAttendanceHistory(int employeeId) {
-		return repo.findAllByEmployeeId(employeeId);
+
+		List<Attendance> attendanceHistory = repo.findAllByEmployeeId(employeeId);
+		logger.info("Retrieved attendance history for employee {}: {} records found.", employeeId,
+				attendanceHistory.size());
+		return attendanceHistory;
+
 	}
 
 	private Long calculateWorkHours(LocalDateTime clockIn, LocalDateTime clockOut) {
@@ -67,6 +84,7 @@ public class AttendanceServiceImp implements AttendanceService {
 
 	public Map<String, Object> getDetailedAttendanceStats(int employeeId) {
 		List<Attendance> records = repo.findByEmployeeId(employeeId);
+		logger.info("Retrieved {} attendance records for employee {}.", records.size(), employeeId);
 
 		List<Attendance> validRecords = records.stream().filter(a -> a.getClockIn() != null && a.getClockOut() != null)
 				.collect(Collectors.toList());
@@ -86,13 +104,12 @@ public class AttendanceServiceImp implements AttendanceService {
 
 			double monthlyAvgHours = totalDays == 0 ? 0 : totalHours / totalDays;
 
-			// Weekly calculation
+// Weekly calculation
 			Map<String, Double> weeklyAvgMap = new LinkedHashMap<>();
 			Map<Integer, List<Attendance>> byWeek = monthlyRecords.stream().collect(Collectors.groupingBy(a -> {
 				int day = a.getDate().getDayOfMonth();
 				return (day - 1) / 7 + 1; // Week 1 to 4
 			}, TreeMap::new, Collectors.toList()));
-
 			for (int week = 1; week <= 4; week++) {
 				List<Attendance> weekRecords = byWeek.getOrDefault(week, new ArrayList<>());
 				double weekHours = weekRecords.stream().mapToLong(Attendance::getWorkHours).sum();
@@ -106,9 +123,13 @@ public class AttendanceServiceImp implements AttendanceService {
 			monthDetails.put("WeeklyAverageHours", weeklyAvgMap);
 
 			result.put(month, monthDetails);
+			logger.info(
+					"Processed attendance stats for month {}: TotalDays={}, MonthlyAverageHours={}, WeeklyAverageHours={}",
+					month, totalDays, monthlyAvgHours, weeklyAvgMap);
 		}
 
 		return result;
+
 	}
 
 }

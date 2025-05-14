@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.exception.LeaveTypeNotFoundException;
 import com.example.demo.model.LeaveRequest;
 import com.example.demo.service.LeaveRequestServiceImp;
 
@@ -23,7 +23,7 @@ public class LeaveRequestController {
     LeaveRequestServiceImp service;
 
     @PostMapping("/apply")
-    public ResponseEntity<String> apply(@RequestBody LeaveRequest req) {
+    public ResponseEntity<String> apply(@RequestBody LeaveRequest req)  {
         return ResponseEntity.ok(service.applyLeave(req));
     }
 
@@ -51,7 +51,7 @@ public class LeaveRequestController {
     public List<LeaveRequest> getLeaveHistoryByEmployeeId(@PathVariable int employeeId) {
         return service.getRequestsByEmployeeId(employeeId);
     }
-    
+ 
     @DeleteMapping("/delete/{id}")
 	public String deleteLeaveRequest(@PathVariable int id) {
 		return service.deleteLeaveRequest(id);

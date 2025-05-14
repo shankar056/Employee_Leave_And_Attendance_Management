@@ -1,5 +1,6 @@
 	package com.example.demo.controller;
 
+import com.example.demo.exception.LeaveInitializationException;
 import com.example.demo.exception.LeaveTypeNotFound;
 import com.example.demo.model.LeaveBalance;
 import com.example.demo.service.LeaveBalanceServiceImp;
@@ -18,7 +19,7 @@ public class LeaveBalanceController {
 	private final LeaveBalanceServiceImp leaveBalanceService;
 
 	@PostMapping("/initialize/{employeeId}")
-    public ResponseEntity<String> init(@PathVariable int employeeId) {
+    public ResponseEntity<String> init(@PathVariable int employeeId) throws LeaveInitializationException {
 		leaveBalanceService.initializeLeaveBalance(employeeId);
         return ResponseEntity.ok("Initialized");
     }

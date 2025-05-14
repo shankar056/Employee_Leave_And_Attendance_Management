@@ -21,6 +21,17 @@ public class ShiftServiceImp implements ShiftService {
 
 	private ShiftRepository repository;
 
+// Define constants
+	private static final String DAY_SHIFT = "Day";
+	private static final String NIGHT_SHIFT = "Night";
+	private static final String SHIFT_NOT_FOUND = "Shift not found";
+	private static final String SHIFT_DELETED = "Shift Deleted";
+	private static final String NO_SWAP_REQUEST_FOUND = "No swap request found for employee ID %d";
+	private static final String SWAP_REQUEST_SUBMITTED = "Swap request submitted for employee ID %d";
+	private static final String SWAP_APPROVED = "Swap approved for employee ID %d";
+	private static final String SWAP_REJECTED = "Swap request rejected for employee ID %d";
+	private static final String NO_MATCHING_SWAP_REQUESTS = "No matching Day-Night swap requests available.";
+
 	@Override
 	public List<Shift> findAll() {
 		logger.info("Fetching all shifts");
@@ -33,7 +44,7 @@ public class ShiftServiceImp implements ShiftService {
 		Optional<Shift> optional = repository.findById(id);
 		if (optional.isEmpty()) {
 			logger.warn("Shift not found with ID: {}", id);
-			throw new ShiftNotFoundException("Shift not found");
+			throw new ShiftNotFoundException(SHIFT_NOT_FOUND);
 		}
 		return optional.get();
 	}
@@ -48,7 +59,7 @@ public class ShiftServiceImp implements ShiftService {
 	public String deleteById(int id) {
 		logger.info("Deleting shift with ID: {}", id);
 		repository.deleteById(id);
-		return "Shift Deleted";
+		return SHIFT_DELETED;
 	}
 
 	@Override
@@ -59,11 +70,11 @@ public class ShiftServiceImp implements ShiftService {
 			Shift shift = optionalShift.get();
 			shift.setSwapRequested(true);
 			repository.save(shift);
-			logger.info("Swap request submitted for employeeId: {}", employeeId);
-			return "Swap request submitted for employee ID " + employeeId;
+			logger.info(String.format(SWAP_REQUEST_SUBMITTED, employeeId));
+			return String.format(SWAP_REQUEST_SUBMITTED, employeeId);
 		} else {
-			logger.warn("Shift not found for employeeId: {}", employeeId);
-			throw new ShiftNotFoundException("Shift not found for employee ID " + employeeId);
+			logger.warn(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
+			throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
 		}
 	}
 
@@ -76,17 +87,17 @@ public class ShiftServiceImp implements ShiftService {
 		List<Shift> nightShifts = new ArrayList<>();
 
 		for (Shift shift : requestedShifts) {
-			if ("Day".equalsIgnoreCase(shift.getShiftType())) {
+			if (DAY_SHIFT.equalsIgnoreCase(shift.getShiftType())) {
 				dayShifts.add(shift);
-			} else if ("Night".equalsIgnoreCase(shift.getShiftType())) {
+			} else if (NIGHT_SHIFT.equalsIgnoreCase(shift.getShiftType())) {
 				nightShifts.add(shift);
 			}
 		}
 
 		int swapCount = Math.min(dayShifts.size(), nightShifts.size());
 		if (swapCount == 0) {
-			logger.info("No matching Day-Night swap requests available");
-			return "No matching Day-Night swap requests available.";
+			logger.info(NO_MATCHING_SWAP_REQUESTS);
+			return NO_MATCHING_SWAP_REQUESTS;
 		}
 
 		for (int i = 0; i < swapCount; i++) {
@@ -105,7 +116,7 @@ public class ShiftServiceImp implements ShiftService {
 		}
 
 		logger.info("{} Day-Night swaps processed successfully", swapCount);
-		return swapCount + " Day-Night swaps processed successfully.";
+		return String.format("%d Day-Night swaps processed successfully.", swapCount);
 	}
 
 	@Override
@@ -117,15 +128,15 @@ public class ShiftServiceImp implements ShiftService {
 			if (shift.isSwapRequested()) {
 				shift.setSwapRequested(false);
 				repository.save(shift);
-				logger.info("Swap approved for employeeId: {}", employeeId);
-				return "Swap approved for employee ID " + employeeId;
+				logger.info(String.format(SWAP_APPROVED, employeeId));
+				return String.format(SWAP_APPROVED, employeeId);
 			} else {
-				logger.info("No swap request found for employeeId: {}", employeeId);
-				return "No swap request found for employee ID " + employeeId;
+				logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
+				return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
 			}
 		} else {
-			logger.warn("Shift not found for employeeId: {}", employeeId);
-			throw new ShiftNotFoundException("Shift not found for employee ID " + employeeId);
+			logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
+			throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
 		}
 	}
 
@@ -138,15 +149,15 @@ public class ShiftServiceImp implements ShiftService {
 			if (shift.isSwapRequested()) {
 				shift.setSwapRequested(false);
 				repository.save(shift);
-				logger.info("Swap request rejected for employeeId: {}", employeeId);
-				return "Swap request rejected for employee ID " + employeeId;
+				logger.info(String.format(SWAP_REJECTED, employeeId));
+				return String.format(SWAP_REJECTED, employeeId);
 			} else {
-				logger.info("No swap request found for employeeId: {}", employeeId);
-				return "No swap request found for employee ID " + employeeId;
+				logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
+				return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
 			}
 		}
-		logger.warn("Shift not found for employeeId: {}", employeeId);
-		return "Shift not found for employee ID " + employeeId;
+		logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
+		return String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId);
 	}
 
 	@Override

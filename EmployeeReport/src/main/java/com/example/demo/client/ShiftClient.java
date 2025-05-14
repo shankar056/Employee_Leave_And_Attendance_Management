@@ -11,7 +11,7 @@ import com.example.demo.dto.ShiftDTO;
 @FeignClient(name = "SHIFTSERVICE", path = "/shifts")
 public interface ShiftClient {
 
-	@GetMapping("/employee/{employeeId}")
+	@GetMapping("/shiftByEmployeeId/{employeeId}")
     public List<ShiftDTO> getShiftsByEmployeeId(@PathVariable int employeeId);
 	@GetMapping("/shiftCountByType/{employeeId}")
     public Map<String, Long> getShiftCountByType(@PathVariable int employeeId);

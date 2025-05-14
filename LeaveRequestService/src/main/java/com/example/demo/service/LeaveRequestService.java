@@ -1,8 +1,7 @@
 package com.example.demo.service;
 
-import com.example.demo.model.LeaveRequest;
-
 import java.util.List;
+import com.example.demo.model.LeaveRequest;
 
 public interface LeaveRequestService {
 
