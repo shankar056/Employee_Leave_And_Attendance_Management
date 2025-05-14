@@ -1,5 +1,7 @@
 	package com.example.demo.controller;
 
+import com.example.demo.exception.EmployeeNotFoundException;
+import com.example.demo.exception.InvalidLeaveBalanceException;
 import com.example.demo.exception.LeaveInitializationException;
 import com.example.demo.exception.LeaveTypeNotFound;
 import com.example.demo.model.LeaveBalance;
@@ -24,19 +26,19 @@ public class LeaveBalanceController {
         return ResponseEntity.ok("Initialized");
     }
 	@PutMapping("/update")
-    public void updateBalance(@RequestBody LeaveBalance balance) throws LeaveTypeNotFound{
+    public void updateBalance(@RequestBody LeaveBalance balance) throws LeaveTypeNotFound, InvalidLeaveBalanceException{
         leaveBalanceService.updateLeaveBalance(balance);
     }
 	
 	@GetMapping("/{employeeId}/{leaveType}")
-    public ResponseEntity<LeaveBalance> getBalanceByType(@PathVariable int employeeId, @PathVariable String leaveType) {
+    public ResponseEntity<LeaveBalance> getBalanceByType(@PathVariable int employeeId, @PathVariable String leaveType) throws LeaveTypeNotFound {
         return leaveBalanceService.getBalanceByType(employeeId, leaveType)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 	
 	@GetMapping("/employee/{employeeId}")
-    public List<LeaveBalance> getBalancesByEmployeeId(@PathVariable int employeeId) {
+    public List<LeaveBalance> getBalancesByEmployeeId(@PathVariable int employeeId) throws EmployeeNotFoundException {
         return leaveBalanceService.getLeaveBalancesByEmployeeId(employeeId);
     }
 

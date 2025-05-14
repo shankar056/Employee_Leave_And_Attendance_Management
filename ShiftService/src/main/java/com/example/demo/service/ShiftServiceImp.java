@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.exception.ShiftNotFoundException;
+import com.example.demo.exception.*;
 import com.example.demo.model.Shift;
 import com.example.demo.repository.ShiftRepository;
 
@@ -21,7 +21,6 @@ public class ShiftServiceImp implements ShiftService {
 
 	private ShiftRepository repository;
 
-// Define constants
 	private static final String DAY_SHIFT = "Day";
 	private static final String NIGHT_SHIFT = "Night";
 	private static final String SHIFT_NOT_FOUND = "Shift not found";
@@ -41,17 +40,37 @@ public class ShiftServiceImp implements ShiftService {
 	@Override
 	public Shift findById(int id) throws ShiftNotFoundException {
 		logger.info("Fetching shift by ID: {}", id);
-		Optional<Shift> optional = repository.findById(id);
-		if (optional.isEmpty()) {
+		return repository.findById(id).orElseThrow(() -> {
 			logger.warn("Shift not found with ID: {}", id);
-			throw new ShiftNotFoundException(SHIFT_NOT_FOUND);
-		}
-		return optional.get();
+			return new ShiftNotFoundException(SHIFT_NOT_FOUND);
+		});
 	}
 
 	@Override
 	public void save(Shift shift) {
 		logger.info("Saving shift for employeeId: {}", shift.getEmployeeId());
+
+		// Prevent past date shift creation
+		if (shift.getDate().isBefore(LocalDate.now())) {
+			logger.warn("Attempt to save shift with past date: {}", shift.getDate());
+			throw new ShiftDateInPastException("Cannot create shift for past date.");
+		}
+
+		// Validate shift type
+		if (!DAY_SHIFT.equalsIgnoreCase(shift.getShiftType()) && !NIGHT_SHIFT.equalsIgnoreCase(shift.getShiftType())) {
+			logger.warn("Invalid shift type: {}", shift.getShiftType());
+			throw new InvalidShiftTypeException("Shift type must be 'Day' or 'Night'.");
+		}
+
+		// Check for duplicate (same employee, same date)
+		List<Shift> existing = repository.findShiftsByEmployeeId(shift.getEmployeeId());
+		for (Shift s : existing) {
+			if (s.getDate().equals(shift.getDate())) {
+				logger.warn("Duplicate shift for employeeId {} on {}", shift.getEmployeeId(), shift.getDate());
+				throw new DuplicateShiftException("Shift already exists for this employee on this date.");
+			}
+		}
+
 		repository.save(shift);
 	}
 
@@ -63,19 +82,21 @@ public class ShiftServiceImp implements ShiftService {
 	}
 
 	@Override
-	public String requestSwap(int employeeId) throws ShiftNotFoundException {
+	public String requestSwap(int employeeId) throws ShiftNotFoundException, ShiftSwapNotAllowedException {
 		logger.info("Requesting shift swap for employeeId: {}", employeeId);
-		Optional<Shift> optionalShift = repository.findByEmployeeId(employeeId);
-		if (optionalShift.isPresent()) {
-			Shift shift = optionalShift.get();
-			shift.setSwapRequested(true);
-			repository.save(shift);
-			logger.info(String.format(SWAP_REQUEST_SUBMITTED, employeeId));
-			return String.format(SWAP_REQUEST_SUBMITTED, employeeId);
-		} else {
-			logger.warn(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
-			throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
+		Shift shift = repository.findByEmployeeId(employeeId).orElseThrow(
+				() -> new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId)));
+
+		// Prevent swap for past dates
+		if (shift.getDate().isBefore(LocalDate.now())) {
+			logger.warn("Attempt to swap past shift for employeeId: {}", employeeId);
+			throw new ShiftSwapNotAllowedException("Cannot request swap for a past shift.");
 		}
+
+		shift.setSwapRequested(true);
+		repository.save(shift);
+		logger.info(String.format(SWAP_REQUEST_SUBMITTED, employeeId));
+		return String.format(SWAP_REQUEST_SUBMITTED, employeeId);
 	}
 
 	@Override
@@ -122,21 +143,19 @@ public class ShiftServiceImp implements ShiftService {
 	@Override
 	public String approveSwapByEmployeeId(int employeeId) throws ShiftNotFoundException {
 		logger.info("Approving swap for employeeId: {}", employeeId);
-		Optional<Shift> optionalShift = repository.findByEmployeeId(employeeId);
-		if (optionalShift.isPresent()) {
-			Shift shift = optionalShift.get();
-			if (shift.isSwapRequested()) {
-				shift.setSwapRequested(false);
-				repository.save(shift);
-				logger.info(String.format(SWAP_APPROVED, employeeId));
-				return String.format(SWAP_APPROVED, employeeId);
-			} else {
-				logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
-				return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
-			}
+
+		// Throw exception if shift not found
+		Shift shift = repository.findByEmployeeId(employeeId).orElseThrow(
+				() -> new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId)));
+
+		if (shift.isSwapRequested()) {
+			shift.setSwapRequested(false);
+			repository.save(shift);
+			logger.info(String.format(SWAP_APPROVED, employeeId));
+			return String.format(SWAP_APPROVED, employeeId);
 		} else {
-			logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
-			throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
+			logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
+			return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
 		}
 	}
 
@@ -157,7 +176,9 @@ public class ShiftServiceImp implements ShiftService {
 			}
 		}
 		logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
-		return String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId);
+		// throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for
+		// employee ID %d", employeeId));
+		return null;
 	}
 
 	@Override

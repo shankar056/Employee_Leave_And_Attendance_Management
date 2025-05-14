@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.feignclient.BalanceLeave;
@@ -12,11 +11,12 @@ import com.example.demo.dto.LeaveBalanceDTO;
 import com.example.demo.model.LeaveRequest;
 import com.example.demo.repository.LeaveRequestRepository;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class LeaveRequestServiceImp {
-	@Autowired
 	LeaveRequestRepository requestRepo;
-	@Autowired
 	BalanceLeave balanceleave;
 
 	public String applyLeave(LeaveRequest request) {
@@ -88,9 +88,9 @@ public class LeaveRequestServiceImp {
 		requestRepo.deleteById(id);
 		return "Leave Deleted";
 	}
-	
+
 	public List<LeaveRequest> getRequestsByEmployeeId(int employeeId) {
-        return requestRepo.findByEmployeeId(employeeId);
-    }
+		return requestRepo.findByEmployeeId(employeeId);
+	}
 
 }

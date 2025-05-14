@@ -9,50 +9,55 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(LeaveTypeNotFound.class)
-	public ResponseEntity<Object> handleLeaveTypeNotFound(LeaveTypeNotFound ex) {
-		return buildResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-	}
+    private static final String LEAVE_BALANCE_PATH = "/leavebalance";
 
-	@ExceptionHandler(LeaveInitializationException.class)
-	public ResponseEntity<Object> handleInitializationError(LeaveInitializationException ex) {
-		return buildResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+    private Map<String, Object> createResponse(HttpStatus status, String error, String message, String path) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", status.value());
+        response.put("error", error);
+        response.put("message", message);
+        response.put("path", path);
+        return response;
+    }
 
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Object> handleValidationErrors(MethodArgumentNotValidException ex) {
-		Map<String, Object> errorDetails = new HashMap<>();
-		errorDetails.put("timestamp", LocalDateTime.now());
-		errorDetails.put("status", HttpStatus.BAD_REQUEST.value());
-		errorDetails.put("error", "Validation Failed");
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return new ResponseEntity<>(createResponse(HttpStatus.BAD_REQUEST, "Validation Error", errorMessage, LEAVE_BALANCE_PATH), HttpStatus.BAD_REQUEST);
+    }
 
-		Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-				.collect(Collectors.toMap(fieldError -> fieldError.getField(),
-						fieldError -> fieldError.getDefaultMessage(), (existing, replacement) -> existing // handle
-																											// duplicate
-																											// fields
-				));
+    @ExceptionHandler(LeaveInitializationException.class)
+    public ResponseEntity<Map<String, Object>> handleLeaveInitializationException(LeaveInitializationException ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.BAD_REQUEST, "Leave Initialization Error", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.BAD_REQUEST);
+    }
 
-		errorDetails.put("fieldErrors", fieldErrors);
-		return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
-	}
+    @ExceptionHandler(LeaveTypeNotFound.class)
+    public ResponseEntity<Map<String, Object>> handleLeaveTypeNotFound(LeaveTypeNotFound ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.NOT_FOUND, "Leave Type Not Found", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.NOT_FOUND);
+    }
 
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Object> handleGenericException(Exception ex) {
-		return buildResponse("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
-	}
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEmployeeNotFoundException(EmployeeNotFoundException ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.NOT_FOUND, "Employee Not Found", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.NOT_FOUND);
+    }
 
-	private ResponseEntity<Object> buildResponse(String message, HttpStatus status) {
-		Map<String, Object> errorDetails = new HashMap<>();
-		errorDetails.put("timestamp", LocalDateTime.now());
-		errorDetails.put("status", status.value());
-		errorDetails.put("error", status.getReasonPhrase());
-		errorDetails.put("message", message);
-		return new ResponseEntity<>(errorDetails, status);
-	}
+    @ExceptionHandler(InvalidLeaveBalanceException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidLeaveBalanceException(InvalidLeaveBalanceException ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.BAD_REQUEST, "Invalid Leave Balance", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflictException(ConflictException ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.CONFLICT, "Conflict", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+        return new ResponseEntity<>(createResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage(), LEAVE_BALANCE_PATH), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

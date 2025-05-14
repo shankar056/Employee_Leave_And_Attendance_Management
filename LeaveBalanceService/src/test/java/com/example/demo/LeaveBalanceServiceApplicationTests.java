@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.example.demo.exception.EmployeeNotFoundException;
+import com.example.demo.exception.InvalidLeaveBalanceException;
 import com.example.demo.exception.LeaveInitializationException;
 import com.example.demo.exception.LeaveTypeNotFound;
 import com.example.demo.model.LeaveBalance;
@@ -60,7 +62,7 @@ class LeaveBalanceServiceApplicationTests {
 	}
 
 	@Test
-	void testGetBalanceByType() {
+	void testGetBalanceByType() throws LeaveTypeNotFound {
 		when(leaveBalanceRepository.findByEmployeeIdAndLeaveType(1001, "Sick")).thenReturn(Optional.of(leaveBalance));
 
 		Optional<LeaveBalance> result = leaveBalanceService.getBalanceByType(1001, "Sick");
@@ -71,7 +73,7 @@ class LeaveBalanceServiceApplicationTests {
 	}
 
 	@Test
-	void testUpdateLeaveBalance_Success() throws LeaveTypeNotFound {
+	void testUpdateLeaveBalance_Success() throws LeaveTypeNotFound, InvalidLeaveBalanceException {
 		LeaveBalance updated = new LeaveBalance(1, 1001, "Sick", 10);
 
 		when(leaveBalanceRepository.findByEmployeeIdAndLeaveType(1001, "Sick")).thenReturn(Optional.of(leaveBalance));
@@ -94,7 +96,7 @@ class LeaveBalanceServiceApplicationTests {
 	}
 
 	@Test
-	void testGetLeaveBalancesByEmployeeId() {
+	void testGetLeaveBalancesByEmployeeId() throws EmployeeNotFoundException {
 		List<LeaveBalance> balances = List.of(leaveBalance);
 
 		when(leaveBalanceRepository.findByEmployeeId(1001)).thenReturn(balances);
