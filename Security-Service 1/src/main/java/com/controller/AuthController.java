@@ -21,7 +21,7 @@ import com.service.UserService;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin("*")
+//@CrossOrigin("*")
 public class AuthController {
 
     @Autowired
@@ -50,8 +50,10 @@ public class AuthController {
     @PostMapping("/authenticate")		//http://localhost:9090/auth/authenticate
     public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
+        System.out.println("Outside if..."+authRequest.getUsername()+" "+authRequest.getPassword());
         if (authentication.isAuthenticated()) {
         	UserInfo obj = repo.findByName(authRequest.getUsername()).orElse(null);
+        	System.out.println("User Info"+obj.getName()+" : "+obj.getPassword());
             return jwtService.generateToken(authRequest.getUsername(),obj.getRole());
         } else {
             throw new UsernameNotFoundException("invalid user request !");
@@ -62,5 +64,10 @@ public class AuthController {
     public String getRoles(@PathVariable String username)
     {
     	return service.getRoles(username);
+    }
+    @GetMapping("/getemployeeid/{username}")		//http://localhost:9090/auth/getroles/{username}
+    public int getEmployeeId(@PathVariable String username)
+    {
+    	return service.getEmployeeId(username);
     }
 }

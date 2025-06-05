@@ -30,7 +30,7 @@ public class AttendanceController {
 	public Attendance clockIn(@RequestParam int employeeId)  {
 
 		return service.clockIn(employeeId);
-
+ 
 	}
 
 	// http://localhost:1001/attendance/clockout

@@ -116,7 +116,6 @@ public class AttendanceServiceImp implements AttendanceService {
 				double avg = weekRecords.isEmpty() ? 0.0 : weekHours / weekRecords.size();
 				weeklyAvgMap.put("Week " + week, avg);
 			}
-
 			Map<String, Object> monthDetails = new LinkedHashMap<>();
 			monthDetails.put("TotalDays", totalDays);
 			monthDetails.put("MonthlyAverageHours", monthlyAvgHours);

@@ -11,11 +11,8 @@ public class LeaveBalance {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	
-//	@NotNull(message = "Employee ID is required")
+
 	private int employeeId;
-	
-//	@NotBlank(message = "Leave type is required")
 	private String leaveType;
 	private Integer balance;
 }

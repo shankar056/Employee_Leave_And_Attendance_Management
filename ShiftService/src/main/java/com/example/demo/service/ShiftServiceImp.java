@@ -176,8 +176,6 @@ public class ShiftServiceImp implements ShiftService {
 			}
 		}
 		logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
-		// throw new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for
-		// employee ID %d", employeeId));
 		return null;
 	}
 

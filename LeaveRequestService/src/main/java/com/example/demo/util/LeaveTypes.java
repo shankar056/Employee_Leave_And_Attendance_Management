@@ -9,9 +9,7 @@ public class LeaveTypes {
 		Map<String, Integer> leaves = new HashMap<>();
 		leaves.put("casual", 10);
 		leaves.put("sick", 8);
-		leaves.put("vacation", 15);
-		leaves.put("personal", 5);
-		leaves.put("emergency", 1);
+		leaves.put("paid", 4);
 		return leaves;
 	}
 }

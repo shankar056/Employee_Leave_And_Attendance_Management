@@ -36,7 +36,7 @@ public class LeaveRequestController {
         return ResponseEntity.ok(service.rejectLeave(id));
     }
 
-    @GetMapping("/history")
+    @GetMapping("/getAll")
     public List<LeaveRequest> all() {
         return service.getAllRequests();
     }
