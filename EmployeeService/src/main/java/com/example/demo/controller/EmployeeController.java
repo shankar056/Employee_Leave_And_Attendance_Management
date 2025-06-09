@@ -21,6 +21,11 @@ public class EmployeeController {
 	public String createEmployee(@RequestBody Employee employee) {
 		return employeeService.saveEmployee(employee);
 	}
+	@GetMapping("/count")
+	public long getEmployeeCount() {
+		return employeeService.countEmployee();
+	}
+ 
 
 	@GetMapping("/email/{email}")
 	public Optional<Employee> getEmployeeByEmail(@PathVariable String email) {

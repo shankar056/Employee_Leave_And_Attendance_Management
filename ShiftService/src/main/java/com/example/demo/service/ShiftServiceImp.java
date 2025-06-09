@@ -82,23 +82,21 @@ public class ShiftServiceImp implements ShiftService {
 	}
 
 	@Override
-	public String requestSwap(int employeeId) throws ShiftNotFoundException, ShiftSwapNotAllowedException {
-		logger.info("Requesting shift swap for employeeId: {}", employeeId);
-		Shift shift = repository.findByEmployeeId(employeeId).orElseThrow(
-				() -> new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId)));
-
-		// Prevent swap for past dates
-		if (shift.getDate().isBefore(LocalDate.now())) {
-			logger.warn("Attempt to swap past shift for employeeId: {}", employeeId);
-			throw new ShiftSwapNotAllowedException("Cannot request swap for a past shift.");
-		}
-
-		shift.setSwapRequested(true);
-		repository.save(shift);
-		logger.info(String.format(SWAP_REQUEST_SUBMITTED, employeeId));
-		return String.format(SWAP_REQUEST_SUBMITTED, employeeId);
-	}
-
+    public String requestSwap(int id) throws ShiftNotFoundException {
+        logger.info("Requesting shift swap for Id: {}", id);
+        Optional<Shift> optionalShift = repository.findById(id);
+        if (optionalShift.isPresent()) {
+            Shift shift = optionalShift.get();
+            shift.setSwapRequested(true);
+            repository.save(shift);
+            logger.info("Swap request submitted for id: {}", id);
+            return "Swap request submitted for ID " + id;
+        } else {
+            logger.warn("Shift not found for id: {}", id);
+            throw new ShiftNotFoundException("Shift not found for id  " + id);
+        }
+    }
+ 
 	@Override
 	public String processSwapRequests() {
 		logger.info("Processing shift swap requests");
@@ -141,43 +139,47 @@ public class ShiftServiceImp implements ShiftService {
 	}
 
 	@Override
-	public String approveSwapByEmployeeId(int employeeId) throws ShiftNotFoundException {
-		logger.info("Approving swap for employeeId: {}", employeeId);
-
-		// Throw exception if shift not found
-		Shift shift = repository.findByEmployeeId(employeeId).orElseThrow(
-				() -> new ShiftNotFoundException(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId)));
-
-		if (shift.isSwapRequested()) {
-			shift.setSwapRequested(false);
-			repository.save(shift);
-			logger.info(String.format(SWAP_APPROVED, employeeId));
-			return String.format(SWAP_APPROVED, employeeId);
-		} else {
-			logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
-			return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
-		}
-	}
-
-	@Override
-	public String rejectSwapByEmployeeId(int employeeId) {
-		logger.info("Rejecting swap for employeeId: {}", employeeId);
-		Optional<Shift> optionalShift = repository.findByEmployeeId(employeeId);
-		if (optionalShift.isPresent()) {
-			Shift shift = optionalShift.get();
-			if (shift.isSwapRequested()) {
-				shift.setSwapRequested(false);
-				repository.save(shift);
-				logger.info(String.format(SWAP_REJECTED, employeeId));
-				return String.format(SWAP_REJECTED, employeeId);
-			} else {
-				logger.info(String.format(NO_SWAP_REQUEST_FOUND, employeeId));
-				return String.format(NO_SWAP_REQUEST_FOUND, employeeId);
-			}
-		}
-		logger.warn(String.format(SHIFT_NOT_FOUND + " for employee ID %d", employeeId));
-		return null;
-	}
+    public String approveSwapByEmployeeId(int employeeId) throws ShiftNotFoundException {
+        logger.info("Approving swap for employeeId: {}", employeeId);
+        Optional<Shift> optionalShift = repository.findById(employeeId);
+        if (optionalShift.isPresent()) {
+            Shift shift = optionalShift.get();
+            if (shift.isSwapRequested()) {
+                shift.setSwapRequested(false);
+                String type=shift.getShiftType();
+                shift.setShiftType((type.equals("Day")?"Night":"Day"));
+                repository.save(shift);
+                logger.info("Swap approved for employeeId: {}", employeeId);
+                return "Swap approved for employee ID " + employeeId;
+            } else {
+                logger.info("No swap request found for employeeId: {}", employeeId);
+                return "No swap request found for employee ID " + employeeId;
+            }
+        } else {
+            logger.warn("Shift not found for employeeId: {}", employeeId);
+            throw new ShiftNotFoundException("Shift not found for employee ID " + employeeId);
+        }
+    }
+	
+	   @Override
+	    public String rejectSwapByEmployeeId(int employeeId) {
+	        logger.info("Rejecting swap for employeeId: {}", employeeId);
+	        Optional<Shift> optionalShift = repository.findById(employeeId);
+	        if (optionalShift.isPresent()) {
+	            Shift shift = optionalShift.get();
+	            if (shift.isSwapRequested()) {
+	                shift.setSwapRequested(false);
+	                repository.save(shift);
+	                logger.info("Swap request rejected for employeeId: {}", employeeId);
+	                return "Swap request rejected for employee ID " + employeeId;
+	            } else {
+	                logger.info("No swap request found for employeeId: {}", employeeId);
+	                return "No swap request found for employee ID " + employeeId;
+	            }
+	        }
+	        logger.warn("Shift not found for employeeId: {}", employeeId);
+	        return "Shift not found for employee ID " + employeeId;
+	    }
 
 	@Override
 	public List<Shift> getShiftsByEmployeeId(int employeeId) {

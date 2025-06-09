@@ -41,8 +41,12 @@ public class AttendanceController {
 
 		return service.clockOut(employeeId);
 
-	}
+	}	
 
+	@GetMapping("/getall")
+	public List<Attendance> getAll(){
+		return service.getAllAttendances();
+	}
 	// http://localhost:1001/attendance/history
 
 	@GetMapping("/history")

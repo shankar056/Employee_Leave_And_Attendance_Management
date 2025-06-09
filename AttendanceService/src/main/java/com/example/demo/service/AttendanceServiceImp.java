@@ -62,6 +62,10 @@ public class AttendanceServiceImp implements AttendanceService {
 		return savedAttendance;
 
 	}
+	public List<Attendance> getAllAttendances() {
+		// TODO Auto-generated method stub
+		return repo.findAll();
+	}
 
 	public List<Attendance> getAttendanceHistory(int employeeId) {
 

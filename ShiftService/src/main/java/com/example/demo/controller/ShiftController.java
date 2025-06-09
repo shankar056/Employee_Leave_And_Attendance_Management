@@ -40,9 +40,9 @@ public class ShiftController {
         return shiftService.deleteById(id);
     }
  
-    @PostMapping("/requestSwap/{employeeId}")
-    public String requestSwap(@PathVariable int employeeId) throws ShiftNotFoundException {
-        return shiftService.requestSwap(employeeId);
+    @PostMapping("/requestSwap/{shiftId}")
+    public String requestSwap(@PathVariable int shiftId) throws ShiftNotFoundException {
+        return shiftService.requestSwap(shiftId);
     }
  
     @PostMapping("/processSwaps")

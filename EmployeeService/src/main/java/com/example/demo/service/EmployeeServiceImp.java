@@ -61,7 +61,9 @@ public class EmployeeServiceImp implements EmployeeService {
 		}
 		return employee;
 	}
-
+	public long countEmployee() {
+    	return employeeRepository.count();
+    }
 	public String deleteEmployee(Integer id) {
 		if (!employeeRepository.existsById(id)) {
 			logger.error("Resource not found: Employee with id {} does not exist.", id);
