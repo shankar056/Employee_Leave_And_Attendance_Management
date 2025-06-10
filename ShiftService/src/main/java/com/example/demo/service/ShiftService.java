@@ -12,7 +12,7 @@ public interface ShiftService {
     void save(Shift shift);
     String deleteById(int id);
     String requestSwap(int employeeId) throws ShiftNotFoundException;
-    String processSwapRequests();
+    String processSwapRequests(LocalDate date);
     String approveSwapByEmployeeId(int employeeId) throws ShiftNotFoundException;
     String rejectSwapByEmployeeId(int employeeId);
     List<Shift> getShiftsByEmployeeId(int employeeId);

@@ -45,11 +45,10 @@ public class ShiftController {
         return shiftService.requestSwap(shiftId);
     }
  
-    @PostMapping("/processSwaps")
-    public String processSwaps() {
-        return shiftService.processSwapRequests();
+    @PostMapping("/processSwaps/{date}")
+    public String processSwaps(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return shiftService.processSwapRequests(date);
     }
- 
     @PostMapping("/approveSwap/{employeeId}")
     public String approveSwap(@PathVariable int employeeId) throws ShiftNotFoundException {
         return shiftService.approveSwapByEmployeeId(employeeId);

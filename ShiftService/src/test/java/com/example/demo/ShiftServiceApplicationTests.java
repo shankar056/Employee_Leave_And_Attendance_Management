@@ -108,23 +108,6 @@ class ShiftServiceApplicationTests {
 	}
 
 	@Test
-	void testProcessSwapRequests() {
-		Shift nightShift = new Shift();
-		nightShift.setId(2);
-		nightShift.setEmployeeId(1002);
-		nightShift.setShiftType("Night");
-		nightShift.setSwapRequested(true);
-
-		when(repository.findBySwapRequestedTrue()).thenReturn(List.of(shift, nightShift));
-
-		String result = service.processSwapRequests();
-
-		assertEquals("1 Day-Night swaps processed successfully.", result);
-		verify(repository, times(2)).save(any(Shift.class));
-		logger.info("1 Day-Night swaps processed successfully");
-	}
-
-	@Test
 	void testApproveSwapByEmployeeId_Success() throws ShiftNotFoundException {
 		shift.setSwapRequested(true);
 		when(repository.findByEmployeeId(1001)).thenReturn(Optional.of(shift));

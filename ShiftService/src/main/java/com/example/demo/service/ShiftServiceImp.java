@@ -98,45 +98,53 @@ public class ShiftServiceImp implements ShiftService {
     }
  
 	@Override
-	public String processSwapRequests() {
-		logger.info("Processing shift swap requests");
-		List<Shift> requestedShifts = repository.findBySwapRequestedTrue();
-
-		List<Shift> dayShifts = new ArrayList<>();
-		List<Shift> nightShifts = new ArrayList<>();
-
-		for (Shift shift : requestedShifts) {
-			if (DAY_SHIFT.equalsIgnoreCase(shift.getShiftType())) {
-				dayShifts.add(shift);
-			} else if (NIGHT_SHIFT.equalsIgnoreCase(shift.getShiftType())) {
-				nightShifts.add(shift);
-			}
-		}
-
-		int swapCount = Math.min(dayShifts.size(), nightShifts.size());
-		if (swapCount == 0) {
-			logger.info(NO_MATCHING_SWAP_REQUESTS);
-			return NO_MATCHING_SWAP_REQUESTS;
-		}
-
-		for (int i = 0; i < swapCount; i++) {
-			Shift day = dayShifts.get(i);
-			Shift night = nightShifts.get(i);
-
-			String temp = day.getShiftType();
-			day.setShiftType(night.getShiftType());
-			night.setShiftType(temp);
-
-			day.setSwapRequested(false);
-			night.setSwapRequested(false);
-
-			repository.save(day);
-			repository.save(night);
-		}
-
-		logger.info("{} Day-Night swaps processed successfully", swapCount);
-		return String.format("%d Day-Night swaps processed successfully.", swapCount);
-	}
+    public String processSwapRequests(LocalDate date) {
+ 
+        logger.info("Processing shift swap requests for date: {}", date);
+ 
+        List<Shift> requestedShifts = repository.findBySwapRequestedTrue();
+ 
+        // Filter shifts by the given date
+        requestedShifts = requestedShifts.stream()
+                .filter(shift -> date.equals(shift.getDate()))
+                .toList();
+ 
+        List<Shift> dayShifts = new ArrayList<>();
+        List<Shift> nightShifts = new ArrayList<>();
+ 
+        for (Shift shift : requestedShifts) {
+            if ("Day".equalsIgnoreCase(shift.getShiftType())) {
+                dayShifts.add(shift);
+            } else if ("Night".equalsIgnoreCase(shift.getShiftType())) {
+                nightShifts.add(shift);
+            }
+        }
+ 
+        int swapCount = Math.min(dayShifts.size(), nightShifts.size());
+        if (swapCount == 0) {
+            logger.info("No matching Day-Night swap requests available for date: {}", date);
+            return "No matching Day-Night swap requests available for " + date + ".";
+        }
+ 
+        for (int i = 0; i < swapCount; i++) {
+            Shift day = dayShifts.get(i);
+            Shift night = nightShifts.get(i);
+ 
+            String temp = day.getShiftType();
+            day.setShiftType(night.getShiftType());
+            night.setShiftType(temp);
+ 
+            day.setSwapRequested(false);
+            night.setSwapRequested(false);
+ 
+            repository.save(day);
+            repository.save(night);
+        }
+ 
+        logger.info("{} Day-Night swaps processed successfully for date {}", swapCount, date);
+        return swapCount + " Day-Night swaps processed successfully for " + date + ".";
+    }
+ 
 
 	@Override
     public String approveSwapByEmployeeId(int employeeId) throws ShiftNotFoundException {
